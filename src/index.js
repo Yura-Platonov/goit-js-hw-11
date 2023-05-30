@@ -10,8 +10,7 @@ const galleryEl = document.querySelector('.gallery');
 const btnLoadMoreEl = document.querySelector('.load-more');
 
 const pixabayAPI = new PixabayAPI();
-
-let gallery = new SimpleLightbox('.gallery a');
+let gallery;
 
 formEl.addEventListener('submit', handleFormSubmit);
 btnLoadMoreEl.addEventListener('click', handleLoadMoreBtnClick);
@@ -48,6 +47,7 @@ async function searchGallery() {
 
     Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
 
+    gallery = new SimpleLightbox('.gallery a');
     gallery.refresh();
 
     if (data.totalHits > pixabayAPI.per_page) {
@@ -66,17 +66,20 @@ function handleLoadMoreBtnClick() {
 async function searchLoadMoreImg() {
   try {
     const { data } = await pixabayAPI.fetchImgs();
-
-    galleryEl.insertAdjacentHTML('beforeend', createGallery(data.hits));
-    gallery.refresh();
-
-     if (data.hits.length < pixabayAPI.per_page) {
+    if (data.hits.length < pixabayAPI.per_page) {
       btnLoadMoreEl.classList.add('is-hidden');
       return Notiflix.Notify.info(
         "We're sorry, but you've reached the end of search results."
       );
+    } else {
+      galleryEl.insertAdjacentHTML('beforeend', createGallery(data.hits));
+      gallery.refresh();
     }
   } catch (error) {
     console.log(error);
+  }
+
+  if (pixabayAPI.page >= pixabayAPI.totalPages) {
+    btnLoadMoreEl.classList.add('is-hidden');
   }
 }
